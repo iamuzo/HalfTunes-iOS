@@ -40,8 +40,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   
   //
   // MARK: - Variables And Properties
-  //
   // TODO 17
+  ///If a background task completes when the app
+  /// isn’t running, the app will relaunch in the
+  /// background. You’ll need to handle this event
+  /// from your app delegate.
+  var backgroundSessionCompletionHandler: (() -> Void)?
+
   var window: UIWindow?
   
   //
@@ -54,7 +59,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   }
   
   // TODO 18
-  
+  ///Here, you save the provided completionHandler as a variable in your app delegate for later use.
+  ///application(_:handleEventsForBackgroundURLSession:) wakes up the app to deal with the
+  ///completed background task. You’ll need to handle two items in this method:
+  ///First, the app needs to recreate the appropriate background configuration and session using
+  ///the identifier provided by this delegate method. But since this app creates the background session
+  ///when it instantiates SearchViewController, you’re already reconnected at this point!
+  ///Second, you’ll need to capture the completion handler provided by this delegate method. Invoking
+  ///the completion handler tells the OS that your app’s done working with all background activities for
+  ///the current session. It also causes the OS to snapshot your updated UI for display in the app switcher.
+  func application(
+    _ application: UIApplication,
+    handleEventsForBackgroundURLSession
+      handleEventsForBackgroundURLSessionidentifier: String,
+    completionHandler: @escaping () -> Void) {
+      backgroundSessionCompletionHandler = completionHandler
+  }
+  ///The place to invoke the provided completion handler is:
+  ///urlSessionDidFinishEvents(forBackgroundURLSession:), which is a URLSessionDelegate method
+  ///that fires when all tasks on the background session have finished.
+
   //
   // MARK - Private Methods
   //
