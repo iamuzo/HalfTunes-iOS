@@ -57,8 +57,14 @@ class SearchViewController: UIViewController {
   ///this lets you delay the creation of the session until after you initialize the view controller.
   ///Doing that allows you to pass self as the delegate parameter to the session initializer.
   lazy var downloadsSession: URLSession = {
-    /// set URLSessionConfiguration to  default configuration
-    let configuration = URLSessionConfiguration.default
+    ///used default configuration before but changed to background
+    ///in order to enable background downloads/transfers. Note that
+    ///you also set a unique identifier for the session to allow your
+    ///app to create a new background session, if needed.
+    ///NOTE: you must not crerate more than one session for a background
+    ///configuration because the system uses the configuration's identifier to
+    ///associated tasks with the session
+    let configuration = URLSessionConfiguration.background(withIdentifier: "guidedProjectHalfTunesByRayWenderlishDotCom")
     
     /// initialize a separate session with a default configuration
     /// specify a delegate which lets you receive `URLSession` events via delegate calls (useful for monitoring task progess)
@@ -232,6 +238,23 @@ extension SearchViewController: TrackCellDelegate {
 }
 
 // TODO 19
+///The code below grabs the stored completion handler from the app delegate and
+///invokes it on the main thread. You find the app delegate by getting the shared
+///instance of UIApplication, which is accessible thanks to the UIKit import.
+extension SearchViewController: URLSessionDelegate {
+  func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
+    DispatchQueue.main.async {
+      if let appDelegate = UIApplication.shared.delegate as? AppDelegate,
+        let completionHandler = appDelegate.backgroundSessionCompletionHandler {
+        appDelegate.backgroundSessionCompletionHandler = nil
+        
+        completionHandler()
+      }
+    }
+  }
+}
+
+
 
 extension SearchViewController: URLSessionDownloadDelegate {
   
